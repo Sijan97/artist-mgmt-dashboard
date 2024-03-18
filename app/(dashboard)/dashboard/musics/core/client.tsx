@@ -1,21 +1,33 @@
 "use client";
 
+import { Plus } from "lucide-react";
+
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
 import { Heading } from "@/components/ui/heading";
 import { Separator } from "@/components/ui/separator";
-import { Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { DataTable } from "@/components/ui/data-table";
+
 import { Music, musicColumns } from ".";
 
 interface MusicsClientProps {
   data: Music[];
+  totalMusics: number;
+  nextPage: any;
+  previousPage: any;
+  previousEnabled: boolean;
+  nextEnabled: boolean;
   page: number;
   pageCount: number;
 }
 
 export const MusicClient: React.FC<MusicsClientProps> = ({
   data,
+  totalMusics,
+  nextPage,
+  previousPage,
+  previousEnabled,
+  nextEnabled,
   page,
   pageCount,
 }) => {
@@ -25,7 +37,7 @@ export const MusicClient: React.FC<MusicsClientProps> = ({
     <>
       <div className="flex items-start justify-between">
         <Heading
-          title={`Musics (${data.length})`}
+          title={`Musics (${totalMusics})`}
           description="Manage musics"
         />
         <Button
@@ -37,11 +49,14 @@ export const MusicClient: React.FC<MusicsClientProps> = ({
       </div>
       <Separator />
       <DataTable
-        pageNo={page}
         searchKey="title"
         columns={musicColumns}
+        previousEnabled={previousEnabled}
+        nextEnabled={nextEnabled}
         data={data}
-        totalUsers={0}
+        previousPage={previousPage}
+        nextPage={nextPage}
+        page={page}
         pageCount={pageCount}
       />
     </>

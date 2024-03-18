@@ -16,13 +16,23 @@ type paramsProps = {
   };
 };
 
-export default function Page({ searchParams }: paramsProps) {
-  const page = Number(searchParams.page) || 1;
-  const pageLimit = Number(searchParams.limit) || 10;
+interface ResultData {
+  count: number;
+  next: string;
+  previous: string | null;
+  results: UserProfile[];
+}
 
+export default function Page({ searchParams }: paramsProps) {
+  const [page, setPage] = useState(1);
+  const pageLimit = Number(searchParams.limit) || 10;
+  const [totalProfiles, setTotalProfiles] = useState(0);
   const { data: session, status } = useSession();
   const [profiles, setProfiles] = useState<Array<UserProfile>>([]);
   const [token, setToken] = useState("");
+  const [query, setQuery] = useState("");
+  const [enableNext, setEnableNext] = useState(true);
+  const [enablePrevious, setEnablePrevious] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -32,38 +42,75 @@ export default function Page({ searchParams }: paramsProps) {
 
   useEffect(() => {
     if (token) {
-      const fetchData = async () => {
+      const fetchData = async (query: string) => {
         try {
-          await getProfiles(handleSuccess, handleFailure, token);
+          await getProfiles(handleSuccess, handleFailure, token, query);
         } catch (error) {
           handleFailure;
         }
       };
 
-      fetchData();
+      fetchData(query);
     }
-  }, [token]);
+  }, [query, token]);
 
-  const handleSuccess = (data: any) => {
-    setProfiles(data);
+  const handleSuccess = (data: ResultData) => {
+    setTotalProfiles(data.count);
+    setProfiles(data.results);
   };
 
   const handleFailure = (error: AxiosError) => {
     console.error("Error fetching profiles:", error);
   };
 
+  const pageCount = Math.ceil(totalProfiles / pageLimit);
+
+  const nextPageHandler = () => {
+    const nextPage = page + 1;
+
+    if (nextPage <= pageCount) {
+      setPage(nextPage);
+      setQuery(`?page=${nextPage}`);
+    }
+
+    setEnableNext(nextPage < pageCount);
+    setEnablePrevious(true);
+  };
+
+  const previousPageHandler = () => {
+    const prevPage = page - 1;
+
+    if (prevPage >= 1) {
+      setPage(prevPage);
+      setQuery(`?page=${prevPage}`);
+    }
+
+    setEnablePrevious(prevPage > 1);
+    setEnableNext(true);
+  };
+
+  useEffect(() => {
+    setEnableNext(pageCount > 1);
+  }, [pageCount]);
+
   if (status === "loading") {
     return <div>Loading...</div>;
   }
-
-  const totalProfiles = profiles.length;
-  const pageCount = Math.ceil(totalProfiles / pageLimit);
 
   return (
     <>
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <BreadCrumb items={breadcrumbItems} />
-        <ProfileClient data={profiles} />
+        <ProfileClient
+          data={profiles}
+          totalProfiles={totalProfiles}
+          previousPage={previousPageHandler}
+          previousEnabled={enablePrevious}
+          nextEnabled={enableNext}
+          nextPage={nextPageHandler}
+          page={page}
+          pageCount={pageCount}
+        />
       </div>
     </>
   );

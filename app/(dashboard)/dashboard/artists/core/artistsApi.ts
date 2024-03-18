@@ -9,9 +9,10 @@ import {
 export const getArtists = (
   onSuccess: OnSuccessFunction,
   onFailure: OnErrorFunction,
-  token: string
+  token: string,
+  query?: string
 ) => {
-  getFromApi("", onSuccess, token, onFailure);
+  getFromApi(`${query}`, onSuccess, token, onFailure);
 };
 
 export const getArtist = (

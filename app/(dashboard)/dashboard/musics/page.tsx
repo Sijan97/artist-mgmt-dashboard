@@ -1,17 +1,14 @@
 "use client";
 
-import BreadCrumb from "@/components/breadcrumb";
-import { buttonVariants } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
-import { Heading } from "@/components/ui/heading";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
-import { Plus } from "lucide-react";
-import Link from "next/link";
-import { Music, getMusics, musicColumns } from "./core";
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+
 import { AxiosError } from "axios";
+
+import { useSession } from "next-auth/react";
+import BreadCrumb from "@/components/breadcrumb";
+
+import { MusicClient } from "./core/client";
+import { getMusics, Music, musicColumns } from "./core";
 
 const breadcrumbItems = [{ title: "Employee", link: "/dashboard/employee" }];
 
@@ -21,15 +18,23 @@ type paramsProps = {
   };
 };
 
-export default function Page({ searchParams }: paramsProps) {
-  const page = Number(searchParams.page) || 1;
-  const pageLimit = Number(searchParams.limit) || 10;
-  const country = searchParams.search || null;
-  const offset = (page - 1) * pageLimit;
+interface ResultData {
+  count: number;
+  next: string;
+  previous: string | null;
+  results: Music[];
+}
 
+export default function Page({ searchParams }: paramsProps) {
+  const [page, setPage] = useState(1);
+  const pageLimit = Number(searchParams.limit) || 10;
+  const [totalMusics, setTotalMusics] = useState(0);
   const { data: session, status } = useSession();
   const [musics, setMusics] = useState<Array<Music>>([]);
   const [token, setToken] = useState("");
+  const [query, setQuery] = useState("");
+  const [enableNext, setEnableNext] = useState(true);
+  const [enablePrevious, setEnablePrevious] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -39,58 +44,70 @@ export default function Page({ searchParams }: paramsProps) {
 
   useEffect(() => {
     if (token) {
-      const fetchData = async () => {
+      const fetchData = async (query: string) => {
         try {
-          await getMusics(handleSuccess, handleFailure, token);
+          await getMusics(handleSuccess, handleFailure, token, query);
         } catch (error) {
           handleFailure;
         }
       };
 
-      fetchData();
+      fetchData(query);
     }
-  }, [token]);
+  }, [query, token]);
 
-  const handleSuccess = (data: any) => {
-    setMusics(data);
+  const handleSuccess = (data: ResultData) => {
+    setTotalMusics(data.count);
+    setMusics(data.results);
   };
 
   const handleFailure = (error: AxiosError) => {
     console.error("Error fetching musics:", error);
   };
 
+  const pageCount = Math.ceil(totalMusics / pageLimit);
+
+  const nextPageHandler = () => {
+    const nextPage = page + 1;
+
+    if (nextPage <= pageCount) {
+      setPage(nextPage);
+      setQuery(`?page=${nextPage}`);
+    }
+
+    setEnableNext(nextPage < pageCount);
+    setEnablePrevious(true);
+  };
+
+  const previousPageHandler = () => {
+    const prevPage = page - 1;
+
+    if (prevPage >= 1) {
+      setPage(prevPage);
+      setQuery(`?page=${prevPage}`);
+    }
+
+    setEnablePrevious(prevPage > 1);
+    setEnableNext(true);
+  };
+
   if (status === "loading") {
     return <div>Loading...</div>;
   }
 
-  const totalMusics = musics.length;
-  const pageCount = Math.ceil(totalMusics / pageLimit);
   return (
     <>
       <div className="flex-1 space-y-4  p-4 md:p-8 pt-6">
         <BreadCrumb items={breadcrumbItems} />
 
-        <div className="flex items-start justify-between">
-          <Heading
-            title={`Musics (${totalMusics})`}
-            description="Manage music"
-          />
-
-          <Link
-            href={"/dashboard/musics/new"}
-            className={cn(buttonVariants({ variant: "default" }))}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add New
-          </Link>
-        </div>
-        <Separator />
-
-        <DataTable
-          searchKey="title"
-          pageNo={page}
-          columns={musicColumns}
-          totalUsers={totalMusics}
+        <MusicClient
           data={musics}
+          totalMusics={totalMusics}
+          previousPage={previousPageHandler}
+          previousEnabled={enablePrevious}
+          nextEnabled={enableNext}
+          nextPage={nextPageHandler}
+          page={page}
           pageCount={pageCount}
         />
       </div>

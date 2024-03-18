@@ -10,21 +10,45 @@ import { UserProfile, profileColumns } from ".";
 
 interface ProfilesClientProps {
   data: UserProfile[];
+  totalProfiles: number;
+  nextPage: any;
+  previousPage: any;
+  previousEnabled: boolean;
+  nextEnabled: boolean;
+  page: number;
+  pageCount: number;
 }
 
-export const ProfileClient: React.FC<ProfilesClientProps> = ({ data }) => {
-  const router = useRouter();
-
+export const ProfileClient: React.FC<ProfilesClientProps> = ({
+  data,
+  totalProfiles,
+  nextPage,
+  previousPage,
+  previousEnabled,
+  nextEnabled,
+  page,
+  pageCount,
+}) => {
   return (
     <>
       <div className="flex items-start justify-between">
         <Heading
-          title={`Profiles (${data.length})`}
+          title={`Profiles (${totalProfiles})`}
           description="Manage profiles"
         />
       </div>
       <Separator />
-      <DataTable searchKey="name" columns={profileColumns} data={data} />
+      <DataTable
+        searchKey="name"
+        columns={profileColumns}
+        previousEnabled={previousEnabled}
+        nextEnabled={nextEnabled}
+        data={data}
+        previousPage={previousPage}
+        nextPage={nextPage}
+        page={page}
+        pageCount={pageCount}
+      />
     </>
   );
 };

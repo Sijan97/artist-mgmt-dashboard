@@ -1,25 +1,43 @@
 "use client";
 
+import { Plus } from "lucide-react";
+
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
 import { Heading } from "@/components/ui/heading";
 import { Separator } from "@/components/ui/separator";
-import { Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { DataTable } from "@/components/ui/data-table";
+
 import { Artist, artistColumns } from ".";
 
 interface ArtistsClientProps {
   data: Artist[];
+  nextPage: any;
+  previousPage: any;
+  previousEnabled: boolean;
+  nextEnabled: boolean;
+  totalArtists: number;
+  page: number;
+  pageCount: number;
 }
 
-export const ArtistClient: React.FC<ArtistsClientProps> = ({ data }) => {
+export const ArtistClient: React.FC<ArtistsClientProps> = ({
+  data,
+  nextPage,
+  previousPage,
+  previousEnabled,
+  nextEnabled,
+  totalArtists,
+  page,
+  pageCount,
+}) => {
   const router = useRouter();
 
   return (
     <>
       <div className="flex items-start justify-between">
         <Heading
-          title={`Artists (${data.length})`}
+          title={`Artists (${totalArtists})`}
           description="Manage artists"
         />
         <Button
@@ -30,7 +48,17 @@ export const ArtistClient: React.FC<ArtistsClientProps> = ({ data }) => {
         </Button>
       </div>
       <Separator />
-      <DataTable searchKey="name" columns={artistColumns} data={data} />
+      <DataTable
+        searchKey="name"
+        columns={artistColumns}
+        previousEnabled={previousEnabled}
+        nextEnabled={nextEnabled}
+        data={data}
+        previousPage={previousPage}
+        nextPage={nextPage}
+        page={page}
+        pageCount={pageCount}
+      />
     </>
   );
 };
