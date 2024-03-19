@@ -22,10 +22,7 @@ export function UserNav() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-8 w-8">
-              <AvatarImage
-                src={session.user?.image ?? ""}
-                alt={session.user?.name ?? ""}
-              />
+              <AvatarImage src={"https://github.com/shadcn.png"} alt={"User"} />
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
           </Button>
@@ -34,10 +31,10 @@ export function UserNav() {
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
-                {session.user?.name}
+                {session.user?.email}
               </p>
               <p className="text-xs leading-none text-muted-foreground">
-                {session.user?.email}
+                {session.user?.id}
               </p>
             </div>
           </DropdownMenuLabel>
@@ -48,14 +45,13 @@ export function UserNav() {
               <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem>
-              Billing
-              <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
+              Artists
+              <DropdownMenuShortcut>⌘A</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem>
-              Settings
-              <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+              Musics
+              <DropdownMenuShortcut>⌘M</DropdownMenuShortcut>
             </DropdownMenuItem>
-            <DropdownMenuItem>New Team</DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()}>
