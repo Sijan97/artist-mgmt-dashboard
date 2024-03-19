@@ -3,24 +3,21 @@
 import BreadCrumb from "@/components/breadcrumb";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import React, { useEffect, useState } from "react";
-import { Music, getMusic } from "../core";
 import { useSession } from "next-auth/react";
 import { AxiosError } from "axios";
 import { __noop } from "@/lib/utils";
-import { MusicForm } from "@/components/forms/music_form";
-import { Artist, getArtists } from "../../artists/core";
-import { ArtistResultData } from "@/constants/data";
+import { Artist, getArtist } from "../../../core";
+import { ArtistMusicForm } from "@/components/forms/artist_musics.form";
 
 export default function Page({ params }: { params: { id: string } }) {
   const breadcrumbItems = [
-    { title: "Musics", link: "/dashboard/musics" },
-    { title: "Update", link: "/dashboard/musics/update" },
+    { title: "Artists", link: `/dashboard/artists/${params.id}/musics/` },
+    { title: "Add", link: "/dashboard/artists/music/new" },
   ];
 
   const id = params.id;
   const { data: session, status } = useSession();
-  const [music, setMusic] = useState<Music>();
-  const [artists, setArtists] = useState<Artist[]>();
+  const [artist, setArtist] = useState<Artist>();
   const [token, setToken] = useState("");
 
   useEffect(() => {
@@ -31,44 +28,26 @@ export default function Page({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     if (token) {
-      const fetchMusicData = async () => {
-        try {
-          await getMusic(id, handleSuccess, handleFailure, token);
-        } catch (error) {
-          handleFailure;
-        }
-      };
-
       const fetchArtistData = async () => {
         try {
-          await getArtists(handleArtistSuccess, handleArtistFailure, token, "");
+          await getArtist(id, handleSuccess, handleFailure, token);
         } catch (error) {
           handleFailure;
         }
       };
-
-      fetchMusicData();
       fetchArtistData();
     }
   }, [id, token]);
 
-  const handleSuccess = (data: any) => {
-    setMusic(data);
-  };
-
-  const handleArtistSuccess = (data: ArtistResultData) => {
-    setArtists(data.results);
+  const handleSuccess = (data: Artist) => {
+    setArtist(data);
   };
 
   const handleFailure = (error: AxiosError) => {
     console.error("Error fetching musics:", error);
   };
 
-  const handleArtistFailure = (error: AxiosError) => {
-    console.error("Error fetching artists:", error);
-  };
-
-  if (status === "loading" && !music) {
+  if (status === "loading") {
     return <div>Loading...</div>;
   }
 
@@ -76,7 +55,7 @@ export default function Page({ params }: { params: { id: string } }) {
     <ScrollArea className="h-full">
       <div className="flex-1 space-y-4 p-5">
         <BreadCrumb items={breadcrumbItems} />
-        <MusicForm initialData={music as Music} artists={artists as Artist[]} />
+        <ArtistMusicForm initial_data={null} artist_id={artist?.id as string} />
       </div>
     </ScrollArea>
   );

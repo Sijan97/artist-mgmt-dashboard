@@ -1,30 +1,37 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+
 import { AxiosError } from "axios";
+
+import { useSession } from "next-auth/react";
 import BreadCrumb from "@/components/breadcrumb";
 
-import { ProfileClient } from "./core/client";
-import { UserProfile, getProfiles } from "./core";
-import { ProfileResultData } from "@/constants/data";
-
-const breadcrumbItems = [{ title: "Profiles", link: "/dashboard/profiles" }];
+import { MusicResultData } from "@/constants/data";
+import { Music, getMusicByArtist } from "../../../musics/core";
+import { ArtistMusicClient } from "../../core/client";
 
 type paramsProps = {
   searchParams: {
     [key: string]: string | string[] | undefined;
   };
+  params: { id: string };
 };
 
-export default function Page({ searchParams }: paramsProps) {
+export default function Page({ searchParams, params }: paramsProps) {
+  const breadcrumbItems = [
+    { title: "Artists", link: `/dashboard/artists/` },
+    { title: "Musics", link: "/dashboard/artists/musics" },
+  ];
+
+  const artistId = params.id;
   const [page, setPage] = useState(1);
   const pageLimit = Number(searchParams.limit) || 10;
-  const [totalProfiles, setTotalProfiles] = useState(0);
+  const [totalMusics, setTotalMusics] = useState(0);
   const { data: session, status } = useSession();
-  const [profiles, setProfiles] = useState<Array<UserProfile>>([]);
+  const [musics, setMusics] = useState<Array<Music>>([]);
   const [token, setToken] = useState("");
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState("/");
   const [enableNext, setEnableNext] = useState(true);
   const [enablePrevious, setEnablePrevious] = useState(false);
 
@@ -38,7 +45,13 @@ export default function Page({ searchParams }: paramsProps) {
     if (token) {
       const fetchData = async (query: string) => {
         try {
-          await getProfiles(handleSuccess, handleFailure, token, query);
+          await getMusicByArtist(
+            artistId,
+            handleSuccess,
+            handleFailure,
+            token,
+            query
+          );
         } catch (error) {
           handleFailure;
         }
@@ -46,18 +59,18 @@ export default function Page({ searchParams }: paramsProps) {
 
       fetchData(query);
     }
-  }, [query, token]);
+  }, [artistId, query, token]);
 
-  const handleSuccess = (data: ProfileResultData) => {
-    setTotalProfiles(data.count);
-    setProfiles(data.results);
+  const handleSuccess = (data: MusicResultData) => {
+    setTotalMusics(data.count);
+    setMusics(data.results);
   };
 
   const handleFailure = (error: AxiosError) => {
-    console.error("Error fetching profiles:", error);
+    console.error("Error fetching musics:", error);
   };
 
-  const pageCount = Math.ceil(totalProfiles / pageLimit);
+  const pageCount = Math.ceil(totalMusics / pageLimit);
 
   const nextPageHandler = () => {
     const nextPage = page + 1;
@@ -95,9 +108,10 @@ export default function Page({ searchParams }: paramsProps) {
     <>
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <BreadCrumb items={breadcrumbItems} />
-        <ProfileClient
-          data={profiles}
-          totalProfiles={totalProfiles}
+        <ArtistMusicClient
+          data={musics}
+          artistId={artistId}
+          totalMusics={totalMusics}
           previousPage={previousPageHandler}
           previousEnabled={enablePrevious}
           nextEnabled={enableNext}

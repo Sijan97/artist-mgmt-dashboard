@@ -5,6 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Artist } from "./_models";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CellAction } from "./cell-action";
+import Link from "next/link";
 
 export const artistColumns: ColumnDef<Artist>[] = [
   {
@@ -29,6 +30,11 @@ export const artistColumns: ColumnDef<Artist>[] = [
   {
     id: "name",
     accessorKey: "name",
+    cell: ({ row }) => (
+      <Link href={`artists/${row.original.id}/musics/`}>
+        {row.original.name}
+      </Link>
+    ),
     header: "NAME",
     enableSorting: true,
     enableHiding: true,

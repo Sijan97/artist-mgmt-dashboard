@@ -1,10 +1,17 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+
+import _ from "lodash";
 import * as z from "zod";
+import { toast } from "react-toastify";
+import { useForm } from "react-hook-form";
+
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
@@ -13,13 +20,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import {
+  createMusic,
+  Music,
+  musicSchema,
+  updateMusic,
+} from "@/app/(dashboard)/dashboard/musics/core";
+
 import { Heading } from "../ui/heading";
-import { useEffect, useState } from "react";
-import { Trash } from "lucide-react";
 import { Separator } from "../ui/separator";
-import { AlertModal } from "../modal/alert-modal";
-import { useSession } from "next-auth/react";
 import {
   Select,
   SelectContent,
@@ -27,51 +36,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-// import Select from "react-select";
-import { Artist } from "@/app/(dashboard)/dashboard/artists/core";
-import { toast } from "react-toastify";
-import {
-  Music,
-  createMusic,
-  musicSchema,
-  updateMusic,
-} from "@/app/(dashboard)/dashboard/musics/core";
-import _ from "lodash";
 
 type MusicFormValue = z.infer<typeof musicSchema>;
 
 interface MusicFormProps {
-  initialData: Music | null;
-  artists: Artist[];
+  initial_data: Music | null;
+  artist_id: string;
 }
 
-export const MusicForm: React.FC<MusicFormProps> = ({
-  initialData,
-  artists,
+export const ArtistMusicForm: React.FC<MusicFormProps> = ({
+  initial_data,
+  artist_id,
 }) => {
   const defaultFormData: MusicFormValue = {
     title: "",
     album_name: "",
     genre: "",
     release_date: new Date(),
-    artist_ids: [],
+    artist_ids: [artist_id],
   };
 
   const router = useRouter();
   const session = useSession();
-  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<MusicFormValue>(defaultFormData);
-  const title = initialData ? "Edit music" : "Create music";
-  const description = initialData ? "Edit music." : "Add a new music";
-  const toastMessage = initialData ? "Music updated." : "Music created.";
-  const action = initialData ? "Save changes" : "Create";
+  const title = initial_data ? "Edit music" : "Create music";
+  const description = initial_data ? "Edit music." : "Add a new music";
+  const toastMessage = initial_data ? "Music updated." : "Music created.";
+  const action = initial_data ? "Save changes" : "Create";
 
   useEffect(() => {
-    if (initialData) {
-      setFormData(initialData);
+    if (initial_data) {
+      //@ts-ignore
+      setFormData(initial_data);
     }
-  }, [initialData]);
+  }, [initial_data]);
 
   const form = useForm<MusicFormValue>({
     resolver: zodResolver(musicSchema),
@@ -86,18 +85,15 @@ export const MusicForm: React.FC<MusicFormProps> = ({
   const genreChangeHandler = (value: string) => {
     setFormData({ ...formData, genre: value });
   };
-  const artistChangeHandler = (value: string) => {
-    setFormData({ ...formData, artist_ids: [value] });
-  };
 
   const onSubmit = async () => {
     const validatedData = musicSchema.parse(formData);
     try {
       setLoading(true);
 
-      if (initialData) {
+      if (initial_data) {
         updateMusic(
-          initialData.id,
+          initial_data.id,
           validatedData,
           () => toast.success(toastMessage),
           () => toast.error("Failed to update"),
@@ -113,7 +109,7 @@ export const MusicForm: React.FC<MusicFormProps> = ({
       }
 
       router.refresh();
-      router.push(`/dashboard/musics`);
+      router.push(`/dashboard/artists/${artist_id}/musics`);
     } catch (error: any) {
       toast.error("Something went wrong");
     } finally {
@@ -123,28 +119,19 @@ export const MusicForm: React.FC<MusicFormProps> = ({
 
   return (
     <>
-      <AlertModal
-        isOpen={open}
-        onClose={() => setOpen(false)}
-        onConfirm={() => {}}
-        loading={loading}
-      />
       <div className="flex items-center justify-between">
         <Heading title={title} description={description} />
-        {initialData && (
-          <Button
-            disabled={loading}
-            variant="destructive"
-            size="sm"
-            onClick={() => setOpen(true)}
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
-        )}
       </div>
       <Separator />
 
       <Form {...form}>
+        <p
+          onClick={() => {
+            console.log(form.getValues());
+          }}
+        >
+          Hello
+        </p>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-8 w-full"
@@ -236,37 +223,6 @@ export const MusicForm: React.FC<MusicFormProps> = ({
                           {genre}
                         </SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="genre"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Artist</FormLabel>
-                  <Select
-                    name="artist_ids"
-                    disabled={loading}
-                    onValueChange={artistChangeHandler}
-                    value={formData.artist_ids && formData?.artist_ids[0]}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an artist" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {artists &&
-                        artists.map((artist) => (
-                          <SelectItem key={artist.id} value={artist.id}>
-                            {artist.name}
-                          </SelectItem>
-                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

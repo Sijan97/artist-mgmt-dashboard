@@ -9,21 +9,15 @@ import BreadCrumb from "@/components/breadcrumb";
 
 import { MusicClient } from "./core/client";
 import { getMusics, Music, musicColumns } from "./core";
+import { MusicResultData } from "@/constants/data";
 
-const breadcrumbItems = [{ title: "Employee", link: "/dashboard/employee" }];
+const breadcrumbItems = [{ title: "Musics", link: "/dashboard/musics" }];
 
 type paramsProps = {
   searchParams: {
     [key: string]: string | string[] | undefined;
   };
 };
-
-interface ResultData {
-  count: number;
-  next: string;
-  previous: string | null;
-  results: Music[];
-}
 
 export default function Page({ searchParams }: paramsProps) {
   const [page, setPage] = useState(1);
@@ -56,7 +50,7 @@ export default function Page({ searchParams }: paramsProps) {
     }
   }, [query, token]);
 
-  const handleSuccess = (data: ResultData) => {
+  const handleSuccess = (data: MusicResultData) => {
     setTotalMusics(data.count);
     setMusics(data.results);
   };
@@ -90,6 +84,10 @@ export default function Page({ searchParams }: paramsProps) {
     setEnablePrevious(prevPage > 1);
     setEnableNext(true);
   };
+
+  useEffect(() => {
+    setEnableNext(pageCount > 1);
+  }, [pageCount]);
 
   if (status === "loading") {
     return <div>Loading...</div>;

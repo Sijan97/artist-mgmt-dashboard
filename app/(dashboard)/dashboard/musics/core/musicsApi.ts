@@ -24,6 +24,16 @@ export const getMusic = (
   getFromApi(`${resourceId}`, onSuccess, token, onFailure);
 };
 
+export const getMusicByArtist = (
+  artistId: string,
+  onSuccess: OnSuccessFunction,
+  onFailure: OnErrorFunction,
+  token: string,
+  query?: string
+) => {
+  getFromApi(`by_artist/${artistId}`, onSuccess, token, onFailure);
+};
+
 export const createMusic = (
   data: any,
   onSuccess: OnSuccessFunction,

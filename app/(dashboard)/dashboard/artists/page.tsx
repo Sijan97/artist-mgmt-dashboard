@@ -9,6 +9,7 @@ import BreadCrumb from "@/components/breadcrumb";
 
 import { Artist, getArtists } from "./core";
 import { ArtistClient } from "./core/client";
+import { ArtistResultData } from "@/constants/data";
 
 const breadcrumbItems = [{ title: "Artists", link: "/dashboard/artists" }];
 
@@ -17,13 +18,6 @@ type paramsProps = {
     [key: string]: string | string[] | undefined;
   };
 };
-
-interface ResultData {
-  count: number;
-  next: string;
-  previous: string | null;
-  results: Artist[];
-}
 
 export default function Page({ searchParams }: paramsProps) {
   const [page, setPage] = useState(1);
@@ -56,7 +50,7 @@ export default function Page({ searchParams }: paramsProps) {
     }
   }, [query, token]);
 
-  const handleSuccess = (data: ResultData) => {
+  const handleSuccess = (data: ArtistResultData) => {
     setTotalArtists(data.count);
     setArtists(data.results);
   };
@@ -90,6 +84,10 @@ export default function Page({ searchParams }: paramsProps) {
     setEnablePrevious(prevPage > 1);
     setEnableNext(true);
   };
+
+  useEffect(() => {
+    setEnableNext(pageCount > 1);
+  }, [pageCount]);
 
   if (status === "loading") {
     return <div>Loading...</div>;

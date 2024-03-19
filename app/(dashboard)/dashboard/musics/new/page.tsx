@@ -8,11 +8,12 @@ import { MusicForm } from "@/components/forms/music_form";
 import { useSession } from "next-auth/react";
 import { Artist, getArtists } from "../../artists/core";
 import { AxiosError } from "axios";
+import { ArtistResultData } from "@/constants/data";
 
 export default function Page() {
   const breadcrumbItems = [
-    { title: "Artists", link: "/dashboard/artists" },
-    { title: "New", link: "/dashboard/artists/new" },
+    { title: "Musics", link: "/dashboard/musics" },
+    { title: "New", link: "/dashboard/musics/new" },
   ];
 
   const { data: session, status } = useSession();
@@ -29,7 +30,7 @@ export default function Page() {
     if (token) {
       const fetchData = async () => {
         try {
-          await getArtists(handleSuccess, handleFailure, token);
+          await getArtists(handleSuccess, handleFailure, token, "");
         } catch (error) {
           handleFailure;
         }
@@ -39,8 +40,8 @@ export default function Page() {
     }
   }, [token]);
 
-  const handleSuccess = (data: any) => {
-    setArtists(data);
+  const handleSuccess = (data: ArtistResultData) => {
+    setArtists(data.results);
   };
 
   const handleFailure = (error: AxiosError) => {

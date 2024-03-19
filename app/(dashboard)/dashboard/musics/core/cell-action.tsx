@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Edit, MoreHorizontal, Trash } from "lucide-react";
 
 import { AlertModal } from "@/components/modal/alert-modal";
@@ -25,6 +25,8 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const path = usePathname();
+  const musicPath = "/dashboard/musics";
   const { data: session } = useSession();
 
   const onConfirm = async () => {
@@ -42,6 +44,14 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     );
 
     setLoading(false);
+  };
+
+  const updatePath = () => {
+    if (path === musicPath) {
+      router.push(`/dashboard/musics/${data.id}`);
+    } else {
+      router.push(`musics/${data.id}`);
+    }
   };
 
   return (
@@ -62,9 +72,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-          <DropdownMenuItem
-            onClick={() => router.push(`/dashboard/musics/${data.id}`)}
-          >
+          <DropdownMenuItem onClick={() => updatePath()}>
             <Edit className="mr-2 h-4 w-4" /> Update
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpen(true)}>

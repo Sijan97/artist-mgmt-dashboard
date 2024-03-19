@@ -14,7 +14,10 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function ImportArtist() {
-  const breadcrumbItems = [{ title: "Artists", link: "/dashboard/artists" }];
+  const breadcrumbItems = [
+    { title: "Artists", link: "/dashboard/artists" },
+    { title: "Import Data", link: "/dashboard/artists/import" },
+  ];
 
   const session = useSession();
   const router = useRouter();
